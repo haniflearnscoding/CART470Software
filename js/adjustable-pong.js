@@ -34,9 +34,13 @@ let ballArray = [];
 
 
 function setup() {
-    createCanvas(400, 400);
+    let canvas = createCanvas(400, 400);
+    canvas.mousePressed(startGame);
 
-    createButton("Add Ball").mousePressed(addBalls);
+    createButton("Add Ball").mousePressed(() => {
+        addBalls();
+        startGame();
+    });
 
     /** 
      * PIPPIN IN HERE
@@ -250,14 +254,18 @@ function resetBall(ball) {
     ballSpeedY = random([-1, 1]);
 }
 
-function mousePressed() {
-    for (let ball of ballArray) {
-        if (isLooping() === false) {
-            resetBall(ball);
-            loop();
-        }
+// Starts the game if it's paused; adds a ball first if there are none
+function startGame() {
+    if (isLooping()) {
+        return;
     }
-
+    if (ballArray.length === 0) {
+        addBalls();
+    }
+    for (let ball of ballArray) {
+        resetBall(ball);
+    }
+    loop();
 }
 
 function moveBalls(ball) {
