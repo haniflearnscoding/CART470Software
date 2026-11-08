@@ -16,12 +16,6 @@ let paddleWidth = 10;
 let leftScore = 0;
 let rightScore = 0;
 
-//Add Ball button
-let ballButtonX = 30;
-let ballButtonY = 20;
-let ballButtonH = 55;
-let ballButtonFill = "#ee2525";
-
 //Ball paremeters
 let ballPosX = 200;
 let ballPosY = 200;
@@ -34,15 +28,6 @@ let ballSpeedYOnSlider = 10
 
 let hSlider = undefined;
 
-let addBallButton = {
-    x: 300,
-    y: 100,
-    w: 500,
-    h: 100,
-    fill: "#ee2525",
-    text: "Add Ball"
-}
-
 let ballArray = [];
 
 
@@ -50,6 +35,8 @@ let ballArray = [];
 
 function setup() {
     createCanvas(400, 400);
+
+    createButton("Add Ball").mousePressed(addBalls);
 
     /** 
      * PIPPIN IN HERE
@@ -139,31 +126,9 @@ function defineBalls() {
     return createdBalls
 }
 
-///Making a function to add balls in an array
-function drawBallButton() {
-    push();
-    fill(ballButtonFill);
-    square(ballButtonX, ballButtonY, ballButtonH);
-    pop();
-}
-
-
+// Called by the "Add Ball" button: adds a new ball to the array
 function addBalls() {
-    const newBall = defineBalls();
-
-    const distance = dist(mouseX, mouseY, ballButtonX, ballButtonY);
-
-    const mouseAddBallButtonOverlap = (distance < ballButtonH / 2);
-    // mouseX < ballButtonX + ballButtonH &&
-    // mouseY > ballButtonY;
-    // mouseY < ballButtonY + ballButtonH;
-
-
-    if (mouseAddBallButtonOverlap && mousePressed) {
-        //if drawball button is overlapped and clicked then push to array
-        ballArray.push(newBall);
-    }
-
+    ballArray.push(defineBalls());
 }
 
 
@@ -188,7 +153,6 @@ function drawBalls(i) {
 function draw() {
     //handles the balls
     background(0);
-    drawBallButton();
     for (let ball of ballArray) {
         // moveBalls(ball);
         drawBalls(ball);
@@ -287,7 +251,6 @@ function resetBall(ball) {
 }
 
 function mousePressed() {
-    addBalls();
     for (let ball of ballArray) {
         if (isLooping() === false) {
             resetBall(ball);
