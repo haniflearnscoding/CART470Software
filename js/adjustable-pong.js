@@ -17,8 +17,6 @@ let leftScore = 0;
 let rightScore = 0;
 
 //Ball paremeters
-let ballPosX = 200;
-let ballPosY = 200;
 // let ballSpeedX = 1;
 // let ballSpeedY = 1;
 let ballSliderSize = 10;
@@ -58,11 +56,11 @@ function setup() {
     ballSizeSlider = createSlider(0, 250);
     ballSizeSlider.elt.addEventListener("input", updateBallSize);
 
-    createDiv("Ball speed (left/right)");
+    createDiv("New ball speed (left/right)");
     ballSpeedSliderX = createSlider(0, 50);
     ballSpeedSliderX.elt.addEventListener("input", updateBallSpeed);
 
-    createDiv("Ball speed (up/down)");
+    createDiv("New ball speed (up/down)");
     ballSpeedSliderY = createSlider(0,);
     ballSpeedSliderY.elt.addEventListener("input", updateBallSpeed);
 
@@ -119,8 +117,8 @@ function updateBallSpeed() {
 function defineBalls() {
     let createdBalls = {
         body: {
-            X: ballPosX,
-            Y: ballPosY,
+            X: width / 2,
+            Y: height / 2,
             speedX: ballSpeedXOnSlider,
             speedY: ballSpeedYOnSlider,
             ballSize: ballSliderSize
@@ -158,13 +156,11 @@ function draw() {
     //handles the balls
     background(0);
     for (let ball of ballArray) {
-        // moveBalls(ball);
-        drawBalls(ball);
         moveBalls(ball);
         checkBallCollision(ball);
+        checkBallEdges(ball);
+        drawBalls(ball);
     }
-
-    console.log(ballArray);
 
     // Draw the paddles
     rect(paddleLeftX, paddleLeftY, paddleWidth, leftPaddleHeight);
@@ -179,24 +175,6 @@ function draw() {
 
 
 
-
-    // If the ball is beyond the left edge
-    if (ballPosX < 0) {
-        // Give the right player a point
-        rightScore += 1;
-        resetBall();
-
-        // Otherwise if the ball is beyond the right edge
-    } else if (ballPosX > width) {
-        // Give the left player a point
-        leftScore += 1;
-        resetBall();
-
-        // Otherwise if the ball is hitting the top or bottom edge
-    } else if (ballPosY < 0 || ballPosY > height) {
-        // Reverse its vertical speed
-        ballSpeedY = -ballSpeedY;
-    }
 
     // Store whether W and S keys are pressed
     let leftDownPressed = keyIsDown(83);
@@ -250,8 +228,29 @@ function draw() {
 function resetBall(ball) {
     ball.body.X = width / 2;
     ball.body.Y = height / 2;
-    ballSpeedX = ballSpeedXOnSlider;
-    ballSpeedY = random([-1, 1]);
+    ball.body.speedX = ballSpeedXOnSlider * random([-1, 1]);
+    ball.body.speedY = random([-1, 1]);
+}
+
+// Scoring and top/bottom bounce for one ball
+function checkBallEdges(ball) {
+    // If the ball is beyond the left edge
+    if (ball.body.X < 0) {
+        // Give the right player a point
+        rightScore += 1;
+        resetBall(ball);
+
+        // Otherwise if the ball is beyond the right edge
+    } else if (ball.body.X > width) {
+        // Give the left player a point
+        leftScore += 1;
+        resetBall(ball);
+
+        // Otherwise if the ball is hitting the top or bottom edge
+    } else if (ball.body.Y < 0 || ball.body.Y > height) {
+        // Reverse its vertical speed
+        ball.body.speedY = -ball.body.speedY;
+    }
 }
 
 // Starts the game if it's paused; adds a ball first if there are none
@@ -270,8 +269,8 @@ function startGame() {
 
 function moveBalls(ball) {
     // Move the ball using its current speed
-    ball.body.X += ballSpeedXOnSlider;
-    ball.body.Y += ballSpeedYOnSlider;
+    ball.body.X += ball.body.speedX;
+    ball.body.Y += ball.body.speedY;
 
 }
 
@@ -297,10 +296,11 @@ function checkBallCollision(ball) {
         ball.body.Y <= rightCollisionBottom
     ) {
         // Reverse the ball's horizontal speed
-        ballSpeedXOnSlider = -ballSpeedXOnSlider;
+        // (always send it left, so it can't get stuck inside the paddle)
+        ball.body.speedX = -Math.abs(ball.body.speedX);
 
         // Change the ball's vertical speed so it appears to bounce off the paddle
-        ballSpeedYOnSlider = (ball.body.Y - paddleRightY) / 20;
+        ball.body.speedY = (ball.body.Y - paddleRightY) / 20;
     }
 
     if (
@@ -310,10 +310,11 @@ function checkBallCollision(ball) {
         ball.body.Y <= leftCollisionBottom
     ) {
         // Reverse the ball's horizontal speed
-        ballSpeedXOnSlider = -ballSpeedXOnSlider;
+        // (always send it right, so it can't get stuck inside the paddle)
+        ball.body.speedX = Math.abs(ball.body.speedX);
 
         // Change the ball's vertical speed so it appears to bounce off the paddle
-        ballSpeedYOnSlider = (ball.body.Y - paddleLeftY) / 20;
+        ball.body.speedY = (ball.body.Y - paddleLeftY) / 20;
     }
 
 
