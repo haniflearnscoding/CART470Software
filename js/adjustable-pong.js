@@ -55,18 +55,23 @@ function setup() {
      * PIPPIN IN HERE
      */
 
+    createDiv("Left paddle height");
     leftHeightSlider = createSlider(0, 400);
     leftHeightSlider.elt.addEventListener("input", updateLeftHeight);
 
+    createDiv("Right paddle height");
     rightHeightSlider = createSlider(0, 400);
     rightHeightSlider.elt.addEventListener("input", updateRightHeight);
 
+    createDiv("New ball size");
     ballSizeSlider = createSlider(0, 250);
     ballSizeSlider.elt.addEventListener("input", updateBallSize);
 
+    createDiv("Ball speed (left/right)");
     ballSpeedSliderX = createSlider(0, 50);
     ballSpeedSliderX.elt.addEventListener("input", updateBallSpeed);
 
+    createDiv("Ball speed (up/down)");
     ballSpeedSliderY = createSlider(0,);
     ballSpeedSliderY.elt.addEventListener("input", updateBallSpeed);
 
