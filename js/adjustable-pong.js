@@ -32,113 +32,140 @@ let ballArray = [];
 
 
 function setup() {
-    let canvas = createCanvas(400, 400);
-    canvas.mousePressed(startGame);
+  let canvas = createCanvas(400, 400);
+  canvas.mousePressed(startGame);
 
-    createButton("Add Ball").mousePressed(() => {
-        addBalls();
-        startGame();
-    });
+  createButton("Add Ball").mousePressed(() => {
+    addBalls();
+    startGame();
+  });
+  createButton("Randomize").mousePressed(randomizeAll);
+  /** 
+   * PIPPIN IN HERE
+   */
 
-    /** 
-     * PIPPIN IN HERE
-     */
+  createDiv("Left paddle height");
+  leftHeightSlider = createSlider(0, 400);
+  leftHeightSlider.elt.addEventListener("input", updateLeftHeight);
 
-    createDiv("Left paddle height");
-    leftHeightSlider = createSlider(0, 400);
-    leftHeightSlider.elt.addEventListener("input", updateLeftHeight);
+  createDiv("Right paddle height");
+  rightHeightSlider = createSlider(0, 400);
+  rightHeightSlider.elt.addEventListener("input", updateRightHeight);
 
-    createDiv("Right paddle height");
-    rightHeightSlider = createSlider(0, 400);
-    rightHeightSlider.elt.addEventListener("input", updateRightHeight);
+  createDiv("New ball size");
+  ballSizeSlider = createSlider(0, 250);
+  ballSizeSlider.elt.addEventListener("input", updateBallSize);
 
-    createDiv("New ball size");
-    ballSizeSlider = createSlider(0, 250);
-    ballSizeSlider.elt.addEventListener("input", updateBallSize);
+  createDiv("New ball speed (left/right)");
+  ballSpeedSliderX = createSlider(0, 50);
+  ballSpeedSliderX.elt.addEventListener("input", updateBallSpeed);
 
-    createDiv("New ball speed (left/right)");
-    ballSpeedSliderX = createSlider(0, 50);
-    ballSpeedSliderX.elt.addEventListener("input", updateBallSpeed);
-
-    createDiv("New ball speed (up/down)");
-    ballSpeedSliderY = createSlider(0,);
-    ballSpeedSliderY.elt.addEventListener("input", updateBallSpeed);
-
-
+  createDiv("New ball speed (up/down)");
+  ballSpeedSliderY = createSlider(0, 50);
+  ballSpeedSliderY.elt.addEventListener("input", updateBallSpeed);
 
 
 
 
-    /**
-     * PIPPIN WAS HERE
-     */
 
 
-    // Draw rectangles from their center
-    // This makes it easier to check whether the ball is above or below the
-    // center of a paddle
-    rectMode(CENTER);
-    fill(255);
-    noStroke();
-    textSize(40);
-    textAlign(CENTER);
+  /**
+   * PIPPIN WAS HERE
+   */
 
-    // Start paused
-    noLoop();
-    describe(
-        'Two narrow white rectangles and a white square representing the paddles and ball in a game of ping pong. The player scores are displayed in the upper corners, and initially text reads "Click to start"'
-    );
+
+  // Draw rectangles from their center
+  // This makes it easier to check whether the ball is above or below the
+  // center of a paddle
+  rectMode(CENTER);
+  fill(255);
+  noStroke();
+  textSize(40);
+  textAlign(CENTER);
+
+  // Start paused
+  noLoop();
+  describe(
+    'Two narrow white rectangles and a white square representing the paddles and ball in a game of ping pong. The player scores are displayed in the upper corners, and initially text reads "Click to start"'
+  );
 }
 
 /**
  * PIPPIN WAS HERE
  */
 function updateLeftHeight() {
-    leftPaddleHeight = leftHeightSlider.value();
+  leftPaddleHeight = leftHeightSlider.value();
 }
 
 function updateRightHeight() {
-    rightPaddleHeight = rightHeightSlider.value();
+  rightPaddleHeight = rightHeightSlider.value();
 }
 
 function updateBallSize() {
-    ballSliderSize = ballSizeSlider.value();
+  ballSliderSize = ballSizeSlider.value();
 
 }
 
 
 function updateBallSpeed() {
-    ballSpeedXOnSlider = ballSpeedSliderX.value();
-    ballSpeedYOnSlider = ballSpeedSliderY.value();
+  ballSpeedXOnSlider = ballSpeedSliderX.value();
+  ballSpeedYOnSlider = ballSpeedSliderY.value();
 
+}
+
+// Called by the "Randomize" button: sets every slider to a random value
+function randomizeAll() {
+  // The sliders themselves (not the numbers they control).
+  // To include a new slider in Randomize, just add it to this list.
+  let sliders = [
+    leftHeightSlider,
+    rightHeightSlider,
+    ballSizeSlider,
+    ballSpeedSliderX,
+    ballSpeedSliderY
+  ];
+
+  for (let slider of sliders) {
+    // Each slider already knows its own range (as text, so convert to numbers)
+    let min = Number(slider.elt.min);
+    let max = Number(slider.elt.max);
+    slider.value(random(min, max));
+  }
+
+  // Setting a slider from code doesn't fire its "input" event,
+  // so copy the new slider values into the game variables ourselves
+  updateLeftHeight();
+  updateRightHeight();
+  updateBallSize();
+  updateBallSpeed();
 }
 
 
 function defineBalls() {
-    let createdBalls = {
-        body: {
-            X: width / 2,
-            Y: height / 2,
-            speedX: ballSpeedXOnSlider,
-            speedY: ballSpeedYOnSlider,
-            ballSize: ballSliderSize
+  let createdBalls = {
+    body: {
+      X: width / 2,
+      Y: height / 2,
+      speedX: ballSpeedXOnSlider,
+      speedY: ballSpeedYOnSlider,
+      ballSize: ballSliderSize
 
-        },
-    }
-    return createdBalls
+    },
+  }
+  return createdBalls
 }
 
 // Called by the "Add Ball" button: adds a new ball to the array
 function addBalls() {
-    ballArray.push(defineBalls());
+  ballArray.push(defineBalls());
 }
 
 
 function drawBalls(i) {
-    push();
-    fill("#ffffff");
-    ellipse(i.body.X, i.body.Y, i.body.ballSize);
-    pop();
+  push();
+  fill("#ffffff");
+  ellipse(i.body.X, i.body.Y, i.body.ballSize);
+  pop();
 }
 
 
@@ -153,169 +180,169 @@ function drawBalls(i) {
  */
 
 function draw() {
-    //handles the balls
-    background(0);
-    for (let ball of ballArray) {
-        moveBalls(ball);
-        checkBallCollision(ball);
-        checkBallEdges(ball);
-        drawBalls(ball);
-    }
+  //handles the balls
+  background(0);
+  for (let ball of ballArray) {
+    moveBalls(ball);
+    checkBallCollision(ball);
+    checkBallEdges(ball);
+    drawBalls(ball);
+  }
 
-    // Draw the paddles
-    rect(paddleLeftX, paddleLeftY, paddleWidth, leftPaddleHeight);
-    rect(paddleRightX, paddleRightY, paddleWidth, rightPaddleHeight);
-
-
-
-    // Draw the score
-    text(leftScore, width * 0.25, height * 0.1);
-    text(rightScore, width * 0.75, height * 0.1);
+  // Draw the paddles
+  rect(paddleLeftX, paddleLeftY, paddleWidth, leftPaddleHeight);
+  rect(paddleRightX, paddleRightY, paddleWidth, rightPaddleHeight);
 
 
 
+  // Draw the score
+  text(leftScore, width * 0.25, height * 0.1);
+  text(rightScore, width * 0.75, height * 0.1);
 
 
-    // Store whether W and S keys are pressed
-    let leftDownPressed = keyIsDown(83);
-    let leftUpPressed = keyIsDown(87);
 
-    // Store how much the left paddle will move
-    let leftMove = 0;
 
-    if (leftDownPressed === true) {
-        leftMove += paddleSpeed;
-    }
-    if (leftUpPressed === true) {
-        leftMove -= paddleSpeed;
-    }
 
-    // Prevent the paddle from moving off screen
-    paddleLeftY = constrain(
-        paddleLeftY + leftMove,
-        leftPaddleHeight / 2,
-        height - leftPaddleHeight / 2
-    );
+  // Store whether W and S keys are pressed
+  let leftDownPressed = keyIsDown(83);
+  let leftUpPressed = keyIsDown(87);
 
-    // Store whether up and down arrow keys are pressed
-    let rightDownPressed = keyIsDown(DOWN_ARROW);
-    let rightUpPressed = keyIsDown(UP_ARROW);
+  // Store how much the left paddle will move
+  let leftMove = 0;
 
-    // Store how much the right paddle will move
-    let rightMove = 0;
+  if (leftDownPressed === true) {
+    leftMove += paddleSpeed;
+  }
+  if (leftUpPressed === true) {
+    leftMove -= paddleSpeed;
+  }
 
-    if (rightDownPressed === true) {
-        rightMove += paddleSpeed;
-    }
-    if (rightUpPressed === true) {
-        rightMove -= paddleSpeed;
-    }
+  // Prevent the paddle from moving off screen
+  paddleLeftY = constrain(
+    paddleLeftY + leftMove,
+    leftPaddleHeight / 2,
+    height - leftPaddleHeight / 2
+  );
 
-    // Prevent the paddle from moving off screen
-    paddleRightY = constrain(
-        paddleRightY + rightMove,
-        rightPaddleHeight / 2,
-        height - rightPaddleHeight / 2
-    );
+  // Store whether up and down arrow keys are pressed
+  let rightDownPressed = keyIsDown(DOWN_ARROW);
+  let rightUpPressed = keyIsDown(UP_ARROW);
 
-    // Show 'Click to start' if game is paused
-    if (isLooping() === false) {
-        text('Click to start', width / 2, height / 2 - 20);
-    }
+  // Store how much the right paddle will move
+  let rightMove = 0;
+
+  if (rightDownPressed === true) {
+    rightMove += paddleSpeed;
+  }
+  if (rightUpPressed === true) {
+    rightMove -= paddleSpeed;
+  }
+
+  // Prevent the paddle from moving off screen
+  paddleRightY = constrain(
+    paddleRightY + rightMove,
+    rightPaddleHeight / 2,
+    height - rightPaddleHeight / 2
+  );
+
+  // Show 'Click to start' if game is paused
+  if (isLooping() === false) {
+    text('Click to start', width / 2, height / 2 - 20);
+  }
 }
 
 // Reset ball to center of canvas with random speed
 function resetBall(ball) {
-    ball.body.X = width / 2;
-    ball.body.Y = height / 2;
-    ball.body.speedX = ballSpeedXOnSlider * random([-1, 1]);
-    ball.body.speedY = random([-1, 1]);
+  ball.body.X = width / 2;
+  ball.body.Y = height / 2;
+  ball.body.speedX = ballSpeedXOnSlider * random([-1, 1]);
+  ball.body.speedY = random([-1, 1]);
 }
 
 // Scoring and top/bottom bounce for one ball
 function checkBallEdges(ball) {
-    // If the ball is beyond the left edge
-    if (ball.body.X < 0) {
-        // Give the right player a point
-        rightScore += 1;
-        resetBall(ball);
+  // If the ball is beyond the left edge
+  if (ball.body.X < 0) {
+    // Give the right player a point
+    rightScore += 1;
+    resetBall(ball);
 
-        // Otherwise if the ball is beyond the right edge
-    } else if (ball.body.X > width) {
-        // Give the left player a point
-        leftScore += 1;
-        resetBall(ball);
+    // Otherwise if the ball is beyond the right edge
+  } else if (ball.body.X > width) {
+    // Give the left player a point
+    leftScore += 1;
+    resetBall(ball);
 
-        // Otherwise if the ball is hitting the top or bottom edge
-    } else if (ball.body.Y < 0 || ball.body.Y > height) {
-        // Reverse its vertical speed
-        ball.body.speedY = -ball.body.speedY;
-    }
+    // Otherwise if the ball is hitting the top or bottom edge
+  } else if (ball.body.Y < 0 || ball.body.Y > height) {
+    // Reverse its vertical speed
+    ball.body.speedY = -ball.body.speedY;
+  }
 }
 
 // Starts the game if it's paused; adds a ball first if there are none
 function startGame() {
-    if (isLooping()) {
-        return;
-    }
-    if (ballArray.length === 0) {
-        addBalls();
-    }
-    for (let ball of ballArray) {
-        resetBall(ball);
-    }
-    loop();
+  if (isLooping()) {
+    return;
+  }
+  if (ballArray.length === 0) {
+    addBalls();
+  }
+  for (let ball of ballArray) {
+    resetBall(ball);
+  }
+  loop();
 }
 
 function moveBalls(ball) {
-    // Move the ball using its current speed
-    ball.body.X += ball.body.speedX;
-    ball.body.Y += ball.body.speedY;
+  // Move the ball using its current speed
+  ball.body.X += ball.body.speedX;
+  ball.body.Y += ball.body.speedY;
 
 }
 
 function checkBallCollision(ball) {
-    // If the ball is colliding with the left paddle
-    // Store coordinates of the right paddle's collision area edges
-    let rightCollisionLeft = paddleRightX - paddleWidth / 2 - ball.body.ballSize / 2;
-    let rightCollisionRight = paddleRightX + paddleWidth / 2 + ball.body.ballSize / 2;
-    let rightCollisionTop = paddleRightY - rightPaddleHeight / 2 - ball.body.ballSize / 2;
-    let rightCollisionBottom = paddleRightY + rightPaddleHeight / 2 + ball.body.ballSize / 2;
+  // If the ball is colliding with the left paddle
+  // Store coordinates of the right paddle's collision area edges
+  let rightCollisionLeft = paddleRightX - paddleWidth / 2 - ball.body.ballSize / 2;
+  let rightCollisionRight = paddleRightX + paddleWidth / 2 + ball.body.ballSize / 2;
+  let rightCollisionTop = paddleRightY - rightPaddleHeight / 2 - ball.body.ballSize / 2;
+  let rightCollisionBottom = paddleRightY + rightPaddleHeight / 2 + ball.body.ballSize / 2;
 
-    // Store coordinates of the left paddle's collision area edges
-    let leftCollisionLeft = paddleLeftX - paddleWidth / 2 - ball.body.ballSize / 2;
-    let leftCollisionRight = paddleLeftX + paddleWidth / 2 + ball.body.ballSize / 2;
-    let leftCollisionTop = paddleLeftY - leftPaddleHeight / 2 - ball.body.ballSize / 2;
-    let leftCollisionBottom = paddleLeftY + leftPaddleHeight / 2 + ball.body.ballSize / 2;
+  // Store coordinates of the left paddle's collision area edges
+  let leftCollisionLeft = paddleLeftX - paddleWidth / 2 - ball.body.ballSize / 2;
+  let leftCollisionRight = paddleLeftX + paddleWidth / 2 + ball.body.ballSize / 2;
+  let leftCollisionTop = paddleLeftY - leftPaddleHeight / 2 - ball.body.ballSize / 2;
+  let leftCollisionBottom = paddleLeftY + leftPaddleHeight / 2 + ball.body.ballSize / 2;
 
-    // If the ball is colliding with the right paddle
-    if (
-        ball.body.X >= rightCollisionLeft &&
-        ball.body.X <= rightCollisionRight &&
-        ball.body.Y >= rightCollisionTop &&
-        ball.body.Y <= rightCollisionBottom
-    ) {
-        // Reverse the ball's horizontal speed
-        // (always send it left, so it can't get stuck inside the paddle)
-        ball.body.speedX = -Math.abs(ball.body.speedX);
+  // If the ball is colliding with the right paddle
+  if (
+    ball.body.X >= rightCollisionLeft &&
+    ball.body.X <= rightCollisionRight &&
+    ball.body.Y >= rightCollisionTop &&
+    ball.body.Y <= rightCollisionBottom
+  ) {
+    // Reverse the ball's horizontal speed
+    // (always send it left, so it can't get stuck inside the paddle)
+    ball.body.speedX = -Math.abs(ball.body.speedX);
 
-        // Change the ball's vertical speed so it appears to bounce off the paddle
-        ball.body.speedY = (ball.body.Y - paddleRightY) / 20;
-    }
+    // Change the ball's vertical speed so it appears to bounce off the paddle
+    ball.body.speedY = (ball.body.Y - paddleRightY) / 20;
+  }
 
-    if (
-        ball.body.X >= leftCollisionLeft &&
-        ball.body.X <= leftCollisionRight &&
-        ball.body.Y >= leftCollisionTop &&
-        ball.body.Y <= leftCollisionBottom
-    ) {
-        // Reverse the ball's horizontal speed
-        // (always send it right, so it can't get stuck inside the paddle)
-        ball.body.speedX = Math.abs(ball.body.speedX);
+  if (
+    ball.body.X >= leftCollisionLeft &&
+    ball.body.X <= leftCollisionRight &&
+    ball.body.Y >= leftCollisionTop &&
+    ball.body.Y <= leftCollisionBottom
+  ) {
+    // Reverse the ball's horizontal speed
+    // (always send it right, so it can't get stuck inside the paddle)
+    ball.body.speedX = Math.abs(ball.body.speedX);
 
-        // Change the ball's vertical speed so it appears to bounce off the paddle
-        ball.body.speedY = (ball.body.Y - paddleLeftY) / 20;
-    }
+    // Change the ball's vertical speed so it appears to bounce off the paddle
+    ball.body.speedY = (ball.body.Y - paddleLeftY) / 20;
+  }
 
 
 
