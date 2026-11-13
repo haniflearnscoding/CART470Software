@@ -24,9 +24,16 @@ let ballSliderSize = 10;
 let ballSpeedXOnSlider = 10
 let ballSpeedYOnSlider = 10
 
-let hSlider = undefined;
+// Extra variables (each one has a slider in setup())
+let gravity = 0;          // added to each ball's up/down speed every frame
+let wallBounciness = 1;   // 1 = normal bounce off top/bottom, <1 = loses speed, >1 = gains speed
+let paddleSpeedUp = 1;    // ball's left/right speed is multiplied by this on every paddle hit
+let paddleBounceAngle = 0.05; // how sharply the ball angles off the paddle
 
 let ballArray = [];
+
+// Every slider made with makeSlider() goes in here, so Randomize can find them
+let allSliders = [];
 
 
 
@@ -44,27 +51,27 @@ function setup() {
    * PIPPIN IN HERE
    */
 
-  createDiv("Left paddle height");
-  leftHeightSlider = createSlider(0, 400);
-  leftHeightSlider.elt.addEventListener("input", updateLeftHeight);
+  // makeSlider(label, min, max, starting value, what to do with the new value, [step])
+  // Paddles
+  makeSlider("Left paddle height", 0, 400, leftPaddleHeight, (v) => { leftPaddleHeight = v; });
+  makeSlider("Right paddle height", 0, 400, rightPaddleHeight, (v) => { rightPaddleHeight = v; });
+  makeSlider("Paddle width", 1, 200, paddleWidth, (v) => { paddleWidth = v; });
+  makeSlider("Paddle speed", 0, 20, paddleSpeed, (v) => { paddleSpeed = v; });
+  makeSlider("Paddle distance from edge", 0, 190, paddleLeftX, (v) => {
+    paddleLeftX = v;
+    paddleRightX = width - v;
+  });
+  makeSlider("Paddle bounce angle", 0, 0.3, paddleBounceAngle, (v) => { paddleBounceAngle = v; }, 0.01);
+  makeSlider("Speed-up per paddle hit", 0.5, 2, paddleSpeedUp, (v) => { paddleSpeedUp = v; }, 0.05);
 
-  createDiv("Right paddle height");
-  rightHeightSlider = createSlider(0, 400);
-  rightHeightSlider.elt.addEventListener("input", updateRightHeight);
+  // New balls
+  makeSlider("New ball size", 0, 250, ballSliderSize, (v) => { ballSliderSize = v; });
+  makeSlider("New ball speed (left/right)", 0, 50, ballSpeedXOnSlider, (v) => { ballSpeedXOnSlider = v; });
+  makeSlider("New ball speed (up/down)", 0, 50, ballSpeedYOnSlider, (v) => { ballSpeedYOnSlider = v; });
 
-  createDiv("New ball size");
-  ballSizeSlider = createSlider(0, 250);
-  ballSizeSlider.elt.addEventListener("input", updateBallSize);
-
-  createDiv("New ball speed (left/right)");
-  ballSpeedSliderX = createSlider(0, 50);
-  ballSpeedSliderX.elt.addEventListener("input", updateBallSpeed);
-
-  createDiv("New ball speed (up/down)");
-  ballSpeedSliderY = createSlider(0, 50);
-  ballSpeedSliderY.elt.addEventListener("input", updateBallSpeed);
-
-
+  // World
+  makeSlider("Gravity", -1, 1, gravity, (v) => { gravity = v; }, 0.01);
+  makeSlider("Wall bounciness", 0, 2, wallBounciness, (v) => { wallBounciness = v; }, 0.05);
 
 
 
@@ -93,51 +100,31 @@ function setup() {
 /**
  * PIPPIN WAS HERE
  */
-function updateLeftHeight() {
-  leftPaddleHeight = leftHeightSlider.value();
-}
 
-function updateRightHeight() {
-  rightPaddleHeight = rightHeightSlider.value();
-}
-
-function updateBallSize() {
-  ballSliderSize = ballSizeSlider.value();
-
-}
-
-
-function updateBallSpeed() {
-  ballSpeedXOnSlider = ballSpeedSliderX.value();
-  ballSpeedYOnSlider = ballSpeedSliderY.value();
-
+// Makes a named slider. Whenever it moves, onChange is called with the new value.
+// (This replaces the old 3-lines-per-slider pattern and the update... functions.)
+function makeSlider(label, min, max, start, onChange, step = 1) {
+  createDiv(label);
+  let slider = createSlider(min, max, start, step);
+  slider.elt.addEventListener("input", () => {
+    onChange(slider.value());
+  });
+  allSliders.push(slider);
+  return slider;
 }
 
 // Called by the "Randomize" button: sets every slider to a random value
 function randomizeAll() {
-  // The sliders themselves (not the numbers they control).
-  // To include a new slider in Randomize, just add it to this list.
-  let sliders = [
-    leftHeightSlider,
-    rightHeightSlider,
-    ballSizeSlider,
-    ballSpeedSliderX,
-    ballSpeedSliderY
-  ];
-
-  for (let slider of sliders) {
+  for (let slider of allSliders) {
     // Each slider already knows its own range (as text, so convert to numbers)
     let min = Number(slider.elt.min);
     let max = Number(slider.elt.max);
     slider.value(random(min, max));
-  }
 
-  // Setting a slider from code doesn't fire its "input" event,
-  // so copy the new slider values into the game variables ourselves
-  updateLeftHeight();
-  updateRightHeight();
-  updateBallSize();
-  updateBallSpeed();
+    // Setting a slider from code doesn't fire its "input" event,
+    // so fire it ourselves; that runs the slider's onChange
+    slider.elt.dispatchEvent(new Event("input"));
+  }
 }
 
 
@@ -273,10 +260,13 @@ function checkBallEdges(ball) {
     leftScore += 1;
     resetBall(ball);
 
-    // Otherwise if the ball is hitting the top or bottom edge
-  } else if (ball.body.Y < 0 || ball.body.Y > height) {
-    // Reverse its vertical speed
-    ball.body.speedY = -ball.body.speedY;
+    // Otherwise if the ball is hitting the top edge, send it down
+  } else if (ball.body.Y < 0) {
+    ball.body.speedY = Math.abs(ball.body.speedY) * wallBounciness;
+
+    // Otherwise if the ball is hitting the bottom edge, send it up
+  } else if (ball.body.Y > height) {
+    ball.body.speedY = -Math.abs(ball.body.speedY) * wallBounciness;
   }
 }
 
@@ -298,6 +288,9 @@ function moveBalls(ball) {
   // Move the ball using its current speed
   ball.body.X += ball.body.speedX;
   ball.body.Y += ball.body.speedY;
+
+  // Gravity pulls on the ball's up/down speed every frame
+  ball.body.speedY += gravity;
 
 }
 
@@ -324,10 +317,11 @@ function checkBallCollision(ball) {
   ) {
     // Reverse the ball's horizontal speed
     // (always send it left, so it can't get stuck inside the paddle)
-    ball.body.speedX = -Math.abs(ball.body.speedX);
+    // and speed it up (or slow it down) by paddleSpeedUp
+    ball.body.speedX = -Math.abs(ball.body.speedX) * paddleSpeedUp;
 
     // Change the ball's vertical speed so it appears to bounce off the paddle
-    ball.body.speedY = (ball.body.Y - paddleRightY) / 20;
+    ball.body.speedY = (ball.body.Y - paddleRightY) * paddleBounceAngle;
   }
 
   if (
@@ -338,10 +332,11 @@ function checkBallCollision(ball) {
   ) {
     // Reverse the ball's horizontal speed
     // (always send it right, so it can't get stuck inside the paddle)
-    ball.body.speedX = Math.abs(ball.body.speedX);
+    // and speed it up (or slow it down) by paddleSpeedUp
+    ball.body.speedX = Math.abs(ball.body.speedX) * paddleSpeedUp;
 
     // Change the ball's vertical speed so it appears to bounce off the paddle
-    ball.body.speedY = (ball.body.Y - paddleLeftY) / 20;
+    ball.body.speedY = (ball.body.Y - paddleLeftY) * paddleBounceAngle;
   }
 
 
